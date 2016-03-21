@@ -15,7 +15,7 @@ class Task: Object {
 //タイトル
 dynamic var title = ""
     
-//カテゴリー ---課題
+//カテゴリ
 dynamic var category = ""
 
 //内容
