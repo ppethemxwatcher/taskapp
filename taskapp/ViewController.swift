@@ -12,6 +12,7 @@ import RealmSwift //追加
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var searchBar: UISearchBar!
     
     //Realmインスタンスを取得する
     let realm = try! Realm() //追加
@@ -20,6 +21,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     //日付近い順でソート：降順
     //以降内容をアップデートするとリスト内は自動的に更新される。
     let taskArray = try! Realm().objects(Task).sorted("date", ascending: false) //追加
+    var filteredArray = try! Realm().objects(Task).sorted("date", ascending: false) //課題追加
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,30 +31,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-    }
-
-    //segueで画面遷移するに呼ばれる
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        let inputViewController:InputViewController = segue.destinationViewController as! InputViewController
-        
-        if segue.identifier == "cellSegue" {
-        let indexPath = self.tableView.indexPathForSelectedRow
-            inputViewController.task = taskArray[indexPath!.row]
-        } else {
-        let task = Task()
-            task.date = NSDate()
-            
-            if taskArray.count != 0 {
-            task.id = taskArray.max("id")! + 1
-            }
-            inputViewController.task = task
-        }
-    }
-    
-    //入力画面から戻ってきた時にTableViewを更新させる
-    override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
-        tableView.reloadData()
     }
     
 //MARK: UITableViewDataSourceプロトコルのメソッド
@@ -111,6 +89,35 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Fade)
             }
         }
+    }
+    //segueで画面遷移する時に呼ばれる
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        let inputViewController:InputViewController = segue.destinationViewController as! InputViewController
+        
+        if segue.identifier == "cellSegue" {
+            let indexPath = self.tableView.indexPathForSelectedRow
+            inputViewController.task = taskArray[indexPath!.row]
+        } else {
+            let task = Task()
+            task.date = NSDate()
+            
+            if taskArray.count != 0 {
+                task.id = taskArray.max("id")! + 1
+            }
+            inputViewController.task = task
+        }
+    }
+    
+    //入力画面から戻ってきた時にTableViewを更新させる
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        tableView.reloadData()
+    }
+    
+//課題追加　検索 -- フィルタが効いてない
+    func searchBar(searchBar: UISearchBar, textDidChange searchText: String){
+        filteredArray = realm.objects(Task).filter("category contains '\(searchBar.text!)'").sorted("date", ascending: false)
+        tableView.reloadData()
     }
 }
 
